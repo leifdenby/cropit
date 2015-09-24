@@ -123,11 +123,17 @@ class Cropit {
   }
 
   loadFileReader(file) {
-    const fileReader = new FileReader();
     if (file && file.type.match('image')) {
-      fileReader.readAsDataURL(file);
-      fileReader.onload = this.onFileReaderLoaded.bind(this);
-      fileReader.onerror = this.onFileReaderError.bind(this);
+      options = { maxWidth: this.$preview.width(), }
+      loadImage.parseMetaData(file, function (data) {
+        if (data.exif) {
+          options.orientation = data.exif.get('Orientation');
+        }
+        fileReader = loadImage(file, function (img) {
+          this.loadImage(img.toDataURL("image/png"));
+        }.bind(this), options);
+        fileReader.onerror = this.onFileReaderError.bind(this);
+      }.bind(this));
     }
     else if (file) {
       this.onFileReaderError();
